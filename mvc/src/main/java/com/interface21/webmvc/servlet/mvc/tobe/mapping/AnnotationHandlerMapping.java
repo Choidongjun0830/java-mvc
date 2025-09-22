@@ -3,6 +3,7 @@ package com.interface21.webmvc.servlet.mvc.tobe.mapping;
 import com.interface21.context.stereotype.Controller;
 import com.interface21.web.bind.annotation.RequestMapping;
 import com.interface21.web.bind.annotation.RequestMethod;
+import com.interface21.webmvc.servlet.ControllerScanner;
 import com.interface21.webmvc.servlet.mvc.HandlerMapping;
 import com.interface21.webmvc.servlet.mvc.tobe.HandlerExecution;
 import com.interface21.webmvc.servlet.mvc.tobe.HandlerKey;
@@ -38,7 +39,7 @@ public class AnnotationHandlerMapping implements HandlerMapping {
 
     public void initialize() {
         try {
-            final Map<Class<?>, Object> controllers = initializeControllerInstances();
+            final Map<Class<?>, Object> controllers = ControllerScanner.getControllers(basePackages);
             final Map<HandlerKey, HandlerExecution> executions = buildHandlerExecutions(controllers);
             handlerExecutions.putAll(executions);
         } catch (Exception e) {
@@ -50,16 +51,6 @@ public class AnnotationHandlerMapping implements HandlerMapping {
     public Object getHandler(final HttpServletRequest request) {
         HandlerKey handlerKey = new HandlerKey(request.getRequestURI(), RequestMethod.valueOf(request.getMethod()));
         return handlerExecutions.get(handlerKey);
-    }
-
-    private Map<Class<?>, Object> initializeControllerInstances() throws Exception {
-        final Map<Class<?>, Object> controllers = new HashMap<>();
-        for (Object basePackage : basePackages) {
-            final Set<Class<?>> controllerClasses = scanControllerClasses(basePackage);
-            final Map<Class<?>, Object> controllerInstances = createControllerInstances(controllerClasses);
-            controllers.putAll(controllerInstances);
-        }
-        return controllers;
     }
 
     private Set<Class<?>> scanControllerClasses(Object basePackage) {
